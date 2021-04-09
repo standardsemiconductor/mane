@@ -1,6 +1,6 @@
 # mane
 ## Library
-See [`src/Mane.hs`]()
+See [`src/Mane.hs`](https://github.com/standardsemiconductor/mane/blob/master/src/Mane.hs)
 
 ## Executable
 
