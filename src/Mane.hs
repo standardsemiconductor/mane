@@ -172,14 +172,15 @@ flashWait ifHndl = do
     flashWait ifHndl
 
 getCDone :: InterfaceHandle -> IO Bool
-getCDone ifHndl = run ifHndl (readB BankL) >>= \case
+getCDone ifHndl = run ifHndl (getGpioValue BankL) >>= \case
   Left failure -> error $ show failure
   Right a -> return $ (0x40 .&. BS.head a) /= 0
 
 printCDone :: InterfaceHandle -> IO ()
-printCDone ifHndl = getCDone ifHndl >>= \cdone -> if cdone
-  then putStrLn "cdone: high"
-  else putStrLn "cdone: low"
+printCDone ifHndl = getCDone ifHndl >>= \cdone -> 
+  putStrLn $ if cdone
+    then "cdone: high"
+    else "cdone: low"
 
 flashReleaseReset :: InterfaceHandle -> IO ()
 flashReleaseReset ifHndl = run ifHndl (setCsCreset True True) >>= \case
