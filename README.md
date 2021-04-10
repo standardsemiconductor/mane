@@ -1,4 +1,6 @@
 # mane
+[![Haskell CI](https://github.com/standardsemiconductor/mane/actions/workflows/haskell.yml/badge.svg)](https://github.com/standardsemiconductor/mane/actions/workflows/haskell.yml)
+
 ## Library
 See [`src/Mane.hs`](https://github.com/standardsemiconductor/mane/blob/master/src/Mane.hs)
 
