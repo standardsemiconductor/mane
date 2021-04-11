@@ -77,10 +77,19 @@ main = mane =<< execParser opts
 
 mane :: Opts -> IO ()
 mane opts = case optMane opts of
-  FindDevice True  -> putStrLn . unlines . deviceInfo . fst =<< findFPGADevice cfg
-  ReadJedec True   -> printJedecID cfg
-  ToggleReset True -> toggleReset cfg
-  Program file     -> progFlash cfg file
+  FindDevice True  -> -- putStrLn . unlines . deviceInfo . fst =<< findFPGADevice cfg
+    findFPGADevice cfg >>= \case
+      Left failure -> print failure
+      Right (usbDevice, _) -> putStrLn $ unlines $ deviceInfo usbDevice 
+  ReadJedec True   -> printJedecID cfg >>= \case
+    Left failure -> print failure
+    Right () -> return ()
+  ToggleReset True -> toggleReset cfg >>= \case
+    Left failure -> print failure
+    Right () -> return ()
+  Program file -> progFlash cfg file >>= \case
+    Left failure -> print failure
+    Right () -> return ()
   _ -> return ()
   where
     cfg = ManeConfig
