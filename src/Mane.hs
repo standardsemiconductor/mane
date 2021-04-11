@@ -10,32 +10,42 @@ module Mane
   , printJedecID
   , toggleReset
   , progFlash
+  , ManeConfig(..)
+  , deviceInfo
   ) where
 
-import qualified System.USB as USB
-import qualified Data.ByteString as BS
-import qualified Data.Vector as V (toList)
-import Data.ByteString (ByteString)
-import Numeric (showHex)
-import System.FTDI
-import System.FTDI.MPSSE
-import Data.Bits
-import Data.Word
 import Control.Monad
 import Control.Concurrent (threadDelay)
-import Text.Printf (printf)
+import Data.ByteString (ByteString)
+import qualified Data.ByteString as BS
+import Data.Bits
 import Data.List (find)
+import qualified Data.Vector as V (toList)
+import Data.Word
+import Numeric (showHex)
 import System.Exit (exitFailure)
+import System.FTDI
+import System.FTDI.MPSSE
 import System.IO
+import qualified System.USB as USB
+import Text.Printf (printf)
+
+data ManeConfig = ManeConfig
+  { vendorId :: USB.VendorId
+  , productId :: USB.ProductId
+  }
 
 withDetachedKernelDriverIfCapable :: USB.Ctx -> DeviceHandle -> Interface -> IO a -> IO a
 withDetachedKernelDriverIfCapable ctx devHndl i m
   | USB.hasCapability ctx USB.SupportsDetachKernelDriver = withDetachedKernelDriver devHndl i m
   | otherwise = m
 
-withFTDI :: (InterfaceHandle -> IO a) -> IO a
-withFTDI m = do
-  (usbDevice, ctx) <- findFPGADevice
+withFTDI 
+  :: ManeConfig
+  -> (InterfaceHandle -> IO a) 
+  -> IO a
+withFTDI cfg m = do
+  (usbDevice, ctx) <- findFPGADevice cfg
   ftdiDevice <- fromUSBDevice usbDevice ChipType_2232H
   withDeviceHandle ftdiDevice $ \devHndl -> do
     resetUSB devHndl
@@ -54,8 +64,8 @@ withFTDI m = do
           Right _      -> return ()
         m ifHndl
 
-progFlash :: FilePath -> IO ()
-progFlash file = withFTDI $ \ifHndl ->
+progFlash :: ManeConfig -> FilePath -> IO ()
+progFlash cfg file = withFTDI cfg $ \ifHndl ->
   withFile file ReadMode $ \fileHndl -> do
     putStrLn "init..."
     printCDone ifHndl
@@ -90,8 +100,8 @@ chunkProg ifHndl fileHndl addr = do
       flashWait ifHndl
       chunkProg ifHndl fileHndl $ addr + fromIntegral (BS.length bytes)
 
-printJedecID :: IO ()
-printJedecID = withFTDI $ \ifHndl -> do
+printJedecID :: ManeConfig -> IO ()
+printJedecID cfg = withFTDI cfg $ \ifHndl -> do
 -- initialize USB to FT2232H
   putStrLn "init..."
   flashReleaseReset ifHndl
@@ -105,8 +115,8 @@ printJedecID = withFTDI $ \ifHndl -> do
   threadDelay 100000
   putStrLn "Bye."
 
-toggleReset :: IO ()
-toggleReset = withFTDI $ \ifHndl -> do
+toggleReset :: ManeConfig -> IO ()
+toggleReset cfg = withFTDI cfg $ \ifHndl -> do
   putStrLn "toggle reset..."
   flashReleaseReset ifHndl
   threadDelay 40000
@@ -213,8 +223,8 @@ toFlashAddr a = let addr2 = fromInteger $ shiftR a 16
 showBS :: BS.ByteString -> String
 showBS = foldr (\n rest -> showHex n . showChar ' ' $ rest) "" . BS.unpack
 
-findFPGADevice :: IO (USB.Device, USB.Ctx)
-findFPGADevice = do
+findFPGADevice :: ManeConfig -> IO (USB.Device, USB.Ctx)
+findFPGADevice cfg = do
   ctx <- USB.newCtx
   devs <- V.toList <$> USB.getDevices ctx
   deviceDescs <- mapM USB.getDeviceDesc devs
@@ -223,14 +233,8 @@ findFPGADevice = do
     Just dev -> return (dev, ctx)
   where
     match :: USB.DeviceDesc -> Bool
-    match devDesc =  USB.deviceVendorId  devDesc == vendorId
-                  && USB.deviceProductId devDesc == productId
-
-vendorId :: USB.VendorId
-vendorId = 0x403
-
-productId :: USB.ProductId
-productId = 0x6014
+    match devDesc =  USB.deviceVendorId  devDesc == vendorId cfg
+                  && USB.deviceProductId devDesc == productId cfg
 
 deviceInfo :: USB.Device -> [String]
 deviceInfo dev =
