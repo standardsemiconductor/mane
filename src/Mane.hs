@@ -11,6 +11,7 @@ module Mane
   , toggleReset
   , progFlash
   , ManeConfig(..)
+  , ManeFailure(..)
   , deviceInfo
   ) where
 
@@ -34,13 +35,15 @@ import Text.Printf (printf)
 ----------------
 -- Mane Monad --
 ----------------
+-- | Mane configuration
 data ManeConfig = ManeConfig
-  { vendorId :: USB.VendorId
-  , productId :: USB.ProductId
+  { vendorId  :: USB.VendorId  -- ^ FTDI Vendor ID
+  , productId :: USB.ProductId -- ^ FTDI Product ID
   }
 
-data ManeFailure = FPGANotFound
-                 | FTDIFailure Failure
+-- | Failure data type
+data ManeFailure = FPGANotFound -- ^ Cannot find FPGA device with vendor ID and product ID
+                 | FTDIFailure Failure -- ^ FTDI Failure from ftdi library
   deriving Show
 
 newtype Mane a = Mane { unMane :: ReaderT ManeConfig (ExceptT ManeFailure IO) a }
@@ -80,6 +83,7 @@ withFTDI cfg m = do
 --            runFTDI ifHndl $ setClockDivisor 0
             runMane cfg $ m ifHndl
 
+-- | Program SPI Flash
 progFlash :: ManeConfig -> FilePath -> IO (Either ManeFailure ())
 progFlash cfg file = withFTDI cfg $ \ifHndl -> do
   liftIO $ putStrLn "init..."
@@ -122,6 +126,7 @@ chunkProg ifHndl fileHndl addr = do
       flashWait ifHndl
       chunkProg ifHndl fileHndl $ addr + fromIntegral (BS.length bytes)
 
+-- | Print the JEDEC ID of the connected FTDI device.
 printJedecID :: ManeConfig -> IO (Either ManeFailure ())
 printJedecID cfg = withFTDI cfg $ \ifHndl -> do
 -- initialize USB to FT2232H
@@ -137,6 +142,7 @@ printJedecID cfg = withFTDI cfg $ \ifHndl -> do
   liftIO $ threadDelay 100000
   liftIO $ putStrLn "Bye."
 
+-- | Toggle CRESET
 toggleReset :: ManeConfig -> IO (Either ManeFailure ())
 toggleReset cfg = withFTDI cfg $ \ifHndl -> do
   liftIO $ putStrLn "toggle reset..."
@@ -261,6 +267,7 @@ getDeviceDescs ctx = liftIO $ do
   deviceDescs <- mapM USB.getDeviceDesc devs
   return $ zip devs deviceDescs
 
+-- | Get device information from a USB device.
 deviceInfo :: USB.Device -> [String]
 deviceInfo dev =
   [ printf "deviceSpeed:   %s" (maybe "-" show $ USB.deviceSpeed dev)
