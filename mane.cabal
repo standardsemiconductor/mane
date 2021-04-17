@@ -29,7 +29,8 @@ library
                        vector               >= 0.12 && < 0.13
           
   ghc-options:         -Wall
-  default-extensions:  FlexibleContexts
+  default-extensions:  CPP
+                       FlexibleContexts
                        GeneralizedNewtypeDeriving
                        LambdaCase
                      

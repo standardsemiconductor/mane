@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 {-|
 Module      : Mane
 Description : VELDT FPGA Programmer
@@ -5,6 +7,7 @@ Copyright   : (c) David Cox, 2021
 License     : MIT
 Maintainer  : standardsemiconductor@gmail.com
 -}
+
 module Mane 
   ( findFPGADevice
   , printJedecID
@@ -71,7 +74,11 @@ withFTDI cfg m = do
     Right (usbDevice, ctx) -> do
       ftdiDevice <- fromUSBDevice usbDevice ChipType_2232H
       withDeviceHandle ftdiDevice $ \devHndl -> do
+#ifdef mingw32_HOST_OS
         let devHndl' = setTimeout devHndl 100000
+#else
+        let devHndl' = devHndl
+#endif
         resetUSB devHndl'
         withDetachedKernelDriverIfCapable ctx devHndl' Interface_A $
           withInterfaceHandle devHndl' Interface_A $ \ifHndl -> do
