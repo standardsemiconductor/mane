@@ -71,16 +71,15 @@ withFTDI cfg m = do
     Right (usbDevice, ctx) -> do
       ftdiDevice <- fromUSBDevice usbDevice ChipType_2232H
       withDeviceHandle ftdiDevice $ \devHndl -> do
-        resetUSB devHndl
-        withDetachedKernelDriverIfCapable ctx devHndl Interface_A $
-          withInterfaceHandle devHndl Interface_A $ \ifHndl -> do
+        let devHndl' = setTimeout devHndl 100000
+        resetUSB devHndl'
+        withDetachedKernelDriverIfCapable ctx devHndl' Interface_A $
+          withInterfaceHandle devHndl' Interface_A $ \ifHndl -> do
             reset ifHndl
             purgeReadBuffer ifHndl
             purgeWriteBuffer ifHndl
             setLatencyTimer ifHndl 1
             setBitMode ifHndl 0xFF BitMode_MPSSE
---            runFTDI ifHndl enableClkDivBy5
---            runFTDI ifHndl $ setClockDivisor 0
             runMane cfg $ m ifHndl
 
 -- | Program SPI Flash
