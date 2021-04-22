@@ -75,7 +75,7 @@ withFTDI cfg m = do
       ftdiDevice <- fromUSBDevice usbDevice ChipType_2232H
       withDeviceHandle ftdiDevice $ \devHndl -> do
 #ifdef mingw32_HOST_OS
-        let devHndl' = setTimeout devHndl 100000
+        let devHndl' = setTimeout devHndl 10000000
 #else
         let devHndl' = devHndl
 #endif
