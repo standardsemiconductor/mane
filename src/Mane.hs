@@ -268,7 +268,7 @@ findFPGADevice cfg = do
                   && USB.deviceProductId devDesc == productId cfg
 
 getDeviceDescs :: USB.Ctx -> IO [(USB.Device, USB.DeviceDesc)]
-getDeviceDescs ctx = liftIO $ do
+getDeviceDescs ctx = do
   devs <- V.toList <$> USB.getDevices ctx
   deviceDescs <- mapM USB.getDeviceDesc devs
   return $ zip devs deviceDescs
