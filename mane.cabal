@@ -8,7 +8,7 @@ license:             MIT
 license-file:        LICENSE
 author:              David Cox
 maintainer:          David Cox <standardsemiconductor@gmail.com>
-copyright:           (c) 2020 David Cox
+copyright:           (c) 2020-2022 David Cox
 category:            System, Hardware
 build-type:          Simple
 extra-source-files:  CHANGELOG.md, README.md
