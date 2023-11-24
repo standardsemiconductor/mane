@@ -22,6 +22,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
     
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install libusb-1.0-0-dev
+
     - name: Setup Haskell
       uses: haskell-actions/setup@v2
       id: setup
