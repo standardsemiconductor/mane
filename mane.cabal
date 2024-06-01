@@ -8,7 +8,7 @@ license:             MIT
 license-file:        LICENSE
 author:              David Cox
 maintainer:          David Cox <standardsemiconductor@gmail.com>
-copyright:           (c) 2020-2023 David Cox
+copyright:           (c) 2020-2024 David Cox
 category:            System, Hardware
 build-type:          Simple
 extra-source-files:  CHANGELOG.md, README.md
@@ -21,12 +21,12 @@ library
   exposed-modules:     Mane
   hs-source-dirs:      src
   default-language:    Haskell2010
-  build-depends:       base                 >= 4.12 && < 4.20,
-                       bytestring           >= 0.10 && < 0.12,
+  build-depends:       base                 >= 4.12 && < 4.21,
+                       bytestring           >= 0.10 && < 0.13,
                        ftdi                 >= 0.3  && < 0.4,
-                       mtl                  >= 2.2  && < 2.3,
+                       mtl                  >= 2.2  && < 2.4,
                        usb                  >= 1.3  && < 1.4,
-                       vector               >= 0.12 && < 0.13
+                       vector               >= 0.12 && < 0.14
           
   ghc-options:         -Wall
   default-extensions:  CPP
@@ -41,7 +41,7 @@ executable mane
   ghc-options:         -Wall
   build-depends:       base,
                        mane,
-                       optparse-applicative >= 0.16 && < 0.17,
+                       optparse-applicative >= 0.16 && < 0.19,
                        usb
   default-extensions:  LambdaCase
 
